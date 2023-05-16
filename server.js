@@ -40,12 +40,15 @@ const vegetables = require("./models/vegetables");
 
 // Routes...
 // Index : Show all the things!
-app.get("/fruits", (req, res) => {
-  Fruit.find({}, (error, allFruits) => {
+app.get("/fruits", async (req, res) => {
+  try {
+    const allFruits = await Fruit.find({});
     res.render("fruits/Index", {
       fruits: allFruits,
     });
-  });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 app.get("/vegetables/", (req, res) => {
@@ -64,44 +67,50 @@ app.get("/vegetables/new", (req, res) => {
 // Delete/Destroy : Get rid of this particular thing!
 // DELETE /fruits/:id
 
-app.delete("/fruits/:id", (req, res) => {
-  Fruit.findByIdAndRemove(req.params.id, (err, data) => {
-    res.redirect("/fruits"); //redirect back to fruits index
-  });
+app.delete("/fruits/:id", async (req, res) => {
+  try {
+    await Fruit.findByIdAndRemove(req.params.id);
+    res.redirect("/fruits");
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // Update : Update this specific thing with this updated form
 // PUT /fruits/:id
 
-app.put("/fruits/:id", (req, res) => {
-  if (req.body.readyToEat === "on") {
-    req.body.readyToEat = true;
-  } else {
-    req.body.readyToEat = false;
-  }
-  Fruit.findByIdAndUpdate(req.params.id, req.body, (err, updatedFruit) => {
+app.put("/fruits/:id", async (req, res) => {
+  try {
+    if (req.body.readyToEat === "on") {
+      req.body.readyToEat = true;
+    } else {
+      req.body.readyToEat = false;
+    }
+    const updatedFruit = await Fruit.findByIdAndUpdate(req.params.id, req.body);
     console.log(updatedFruit);
     res.redirect(`/fruits/${req.params.id}`);
-  });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // Create : Make a new thing with this filled out form
 //POST /fruits
 
-app.post("/fruits", (req, res) => {
-  if (req.body.readyToEat === "on") {
-    //if checked, req.body.readyToEat is set to 'on'
-
-    req.body.readyToEat = true; //do some data correction
-  } else {
-    //if not checked, req.body.readyToEat is undefined
-    req.body.readyToEat = false; //do some data correction
+app.post("/fruits", async (req, res) => {
+  try {
+    if (req.body.readyToEat === "on") {
+      req.body.readyToEat = true;
+    } else {
+      req.body.readyToEat = false;
+    }
+    await Fruit.create(req.body);
+    res.redirect("/fruits");
+  } catch (error) {
+    console.error(error);
   }
-  // fruits.push(req.body) // pushing new fruit into fruits array
-  Fruit.create(req.body, (error, createdFruit) => {
-    res.redirect("/fruits"); //send the user back to /fruits
-  });
 });
+
 app.post("/vegetables", (req, res) => {
   if (req.body.readyToEat === "on") {
     //if checked, req.body.readyToEat is set to 'on'
@@ -118,27 +127,28 @@ app.post("/vegetables", (req, res) => {
 // Edit : A prefilled form to update a specific thing
 // GET /fruits/:id/edit
 
-app.get("/fruits/:id/edit", (req, res) => {
-  Fruit.findById(req.params.id, (err, foundFruit) => {
-    //find the fruit
-    if (!err) {
-      res.render("fruits/Edit", {
-        fruit: foundFruit, //pass in the found fruit so we can prefill the form
-      });
-    } else {
-      res.send({ msg: err.message });
-    }
-  });
+app.get("/fruits/:id/edit", async (req, res) => {
+  try {
+    const foundFruit = await Fruit.findById(req.params.id);
+    res.render("fruits/Edit", {
+      fruit: foundFruit,
+    });
+  } catch (err) {
+    res.send({ msg: err.message });
+  }
 });
 
 // Show : Show me this one thing by ID
 // GET /fruits/:id
-app.get("/fruits/:id", (req, res) => {
-  Fruit.findById(req.params.id, (err, foundFruit) => {
+app.get("/fruits/:id", async (req, res) => {
+  try {
+    const foundFruit = await Fruit.findById(req.params.id);
     res.render("fruits/Show", {
       fruit: foundFruit,
     });
-  });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 app.get("/vegetables/:indexOfVegArray", (req, res) => {
